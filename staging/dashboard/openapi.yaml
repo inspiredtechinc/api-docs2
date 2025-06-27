@@ -1,0 +1,1671 @@
+swagger: "2.0"
+info:
+  contact:
+    email: info@aircouch.com
+    name: Inspried Tech
+    url: https://www.inspiredtech.ca
+  description: API for Project X, a prototype for the x platform.
+  termsOfService: https://www.inspiredtech.ca/terms
+  title: project-x-api
+  version: 1.0.0
+# NOTE: we will add the gateway later when the service is deployed.
+# host: project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev
+basePath: /api/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+tags:
+  - description: dashboard heartbeat
+    name: heartbeat
+  - description: Dashboard login
+    name: login
+  - description: User Management
+    name: user
+  - description: Booking Management
+    name: booking
+  - description: Listing Management
+    name: listing
+  - description: Review Management
+    name: review
+paths:
+  # --- Health check routes ---
+  /dashboard/heartbeat:
+    get:
+      summary: Dashboard service heartbeat
+      operationId: heartbeat
+      tags:
+        - heartbeat
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            example: OK
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/heartbeat/services:
+    get:
+      summary: Health check for all backend services
+      operationId: allServicesHeartBeat
+      tags:
+        - heartbeat
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            properties:
+              status:
+                example: ok
+                type: string
+              services:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    status:
+                      type: string
+                    path:
+                      type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  # --- Login routes ---
+  /dashboard/login/email:
+    post:
+      summary: Login by email
+      operationId: loginByEmail
+      tags:
+        - login
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: object
+            properties:
+              email:
+                format: email
+                type: string
+              password:
+                format: password
+                type: string
+            required:
+              - email
+              - password
+      responses:
+        "200":
+          description: Authenticated User
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              user:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  access_token:
+                    type: string
+                    description: JWT token for authenticated user
+        "400":
+          description: Invalid body
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  # --- User management ---
+  /dashboard/users:
+    get:
+      summary: List/Search users
+      operationId: getUsers
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - default: 1
+          description: Page number
+          in: query
+          minimum: 0
+          name: page
+          type: integer
+        - default: 10
+          description: Results per page
+          in: query
+          minimum: 0
+          name: limit
+          type: integer
+        - description: Search query (name, email, id, etc)
+          in: query
+          name: query
+          type: string
+        - description: Filter by user status
+          enum:
+            - activate
+            - ban
+            - deleted
+            - pending
+          in: query
+          name: status
+          type: string
+      responses:
+        "200":
+          description: List of users
+          schema:
+            type: object
+            properties:
+              limit:
+                example: 10
+                type: integer
+              page:
+                example: 1
+                type: integer
+              pages:
+                example: 1
+                type: integer
+              status:
+                example: ok
+                type: string
+              total:
+                example: 2
+                type: integer
+              users:
+                items:
+                  $ref: "#/definitions/UserSummary"
+                type: array
+        "400":
+          description: Invalid query
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/users/{id}:
+    delete:
+      summary: Delete a user
+      operationId: deleteUserById
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - default: soft
+          description: Delete type
+          enum:
+            - soft
+            - hard
+          in: query
+          name: option
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              user_id:
+                type: string
+        "404":
+          description: User Not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+    get:
+      summary: Get a user detail
+      operationId: getUserById
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: User detail
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              user:
+                $ref: "#/definitions/User"
+        "404":
+          description: User Not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+    put:
+      summary: Update user
+      operationId: updateUserById
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: user
+          required: true
+          schema:
+            $ref: "#/definitions/UserAdminUpdateRequest"
+      responses:
+        "200":
+          description: User updated
+        "400":
+          description: Invalid request
+
+  /dashboard/users/{id}/status:
+    put:
+      summary: Update user status
+      operationId: updateUserStatus
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: status
+          schema:
+            type: object
+            properties:
+              status:
+                enum:
+                  - activate
+                  - ban
+                  - deleted
+                  - pending
+                type: string
+            required:
+              - status
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              user_id:
+                type: string
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+
+  /dashboard/users/{id}/sendMessage:
+    post:
+      summary: Send message to an User
+      tags:
+        - user
+      operationId: userSendMessage
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: message
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              toast:
+                type: string
+                example: Message sent successfully
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+
+  /dashboard/users/{id}/ban:
+    post:
+      operationId: banUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: reason
+          required: true
+          schema:
+            properties:
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: User banned
+      security:
+        - jwtAuth: []
+      summary: Ban or suspend a user
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/users/{id}/export:
+    get:
+      operationId: exportUserData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: User data export
+      security:
+        - jwtAuth: []
+      summary: Export user data
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/users/{id}/impersonate:
+    post:
+      operationId: impersonateUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Impersonation token/session
+      security:
+        - jwtAuth: []
+      summary: Impersonate user (admin login as user)
+      tags:
+        - user
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/users/profile/picture:
+    put:
+      summary: Update admin's profile picture
+      tags:
+        - user
+      operationId: updateAdminProfilePicture
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      parameters:
+        - in: body
+          name: file
+          required: true
+          description: Raw binary image file (PNG, JPEG, or GIF)
+          schema:
+            type: string
+            format: binary
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              user_id:
+                type: string
+              url:
+                type: string
+                example: https://unsplash.com/photos/yellow-flowers-bloom-beneath-a-reaching-shadow-0FPDfErlKzQ
+
+  # --- Booking Management ---
+  /dashboard/bookings:
+    get:
+      summary: List/search bookings
+      operationId: getBookings
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - default: 1
+          description: Page number
+          in: query
+          minimum: 0
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Results per page
+          in: query
+          minimum: 0
+          name: limit
+          required: false
+          type: integer
+        - description: Search query (host, guest, id, etc)
+          in: query
+          name: query
+          required: false
+          type: string
+        - description: Filter by booking status
+          enum:
+            - completed
+            - flagged
+            - cancelled
+            - pending
+            - accepted
+          in: query
+          name: status
+          required: false
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              total:
+                type: integer
+                example: 2
+              page:
+                type: integer
+                example: 1
+              limit:
+                type: integer
+                example: 10
+              pages:
+                type: integer
+                example: 1
+              bookings:
+                type: array
+                items:
+                  $ref: "#/definitions/BookingSummary"
+
+  /dashboard/bookings/{id}:
+    get:
+      summary: Get booking detail
+      operationId: getBookingById
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              booking:
+                $ref: "#/definitions/Booking"
+        "404":
+          description: Booking not found
+    delete:
+      operationId: deleteBookingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Booking deleted
+      security:
+        - jwtAuth: []
+      summary: Delete booking (admin)
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateBookingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: booking
+          required: true
+          schema:
+            $ref: "#/definitions/BookingAdminUpdateRequest"
+      responses:
+        "200":
+          description: Booking updated
+      security:
+        - jwtAuth: []
+      summary: Update booking (admin)
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/bookings/{id}/export:
+    get:
+      operationId: exportBookingData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Booking data export
+      security:
+        - jwtAuth: []
+      summary: Export booking data
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/bookings/{id}/refund:
+    post:
+      operationId: refundBooking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: refund
+          required: true
+          schema:
+            properties:
+              amount:
+                format: float
+                type: number
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Refund processed
+      security:
+        - jwtAuth: []
+      summary: Refund booking
+      tags:
+        - booking
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  # --- Listing Management ---
+  /dashboard/listings:
+    get:
+      summary: List/Search listing
+      operationId: getListings
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - default: 1
+          description: Page number
+          in: query
+          minimum: 0
+          name: page
+          type: integer
+        - default: 10
+          description: Results per page
+          in: query
+          minimum: 0
+          name: limit
+          type: integer
+        - description: Search query
+          in: query
+          name: query
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              listings:
+                type: array
+                items:
+                  $ref: "#/definitions/ListingSummary"
+
+  /dashboard/listings/{id}:
+    delete:
+      operationId: deleteListingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Listing deleted
+      security:
+        - jwtAuth: []
+      summary: Delete listing (admin)
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      summary: Get a listing detail
+      operationId: getListingById
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Listing ID
+          required: true
+          type: string
+          maxLength: 32
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              listing:
+                $ref: "#/definitions/Listing"
+        "400":
+          description: Invalid listing ID
+          schema:
+            $ref: "#/definitions/Error400Response"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+    patch:
+      operationId: updateListingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: listing
+          required: true
+          schema:
+            $ref: "#/definitions/ListingAdminUpdateRequest"
+      responses:
+        "200":
+          description: Listing updated
+      security:
+        - jwtAuth: []
+      summary: Update listing (admin)
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings/{id}/export:
+    get:
+      operationId: exportListingData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Listing data export
+      security:
+        - jwtAuth: []
+      summary: Export listing data
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings/{id}/moderate:
+    post:
+      operationId: moderateListing
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Moderation result
+      security:
+        - jwtAuth: []
+      summary: Moderate listing (approve/reject)
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  # --- Document Management ---
+  /dashboard/documents:
+    get:
+      operationId: listDocuments
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of documents
+      security:
+        - jwtAuth: []
+      summary: List/search documents (KYC, verification)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/documents/{id}/export:
+    get:
+      operationId: exportDocumentData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Document data export
+      security:
+        - jwtAuth: []
+      summary: Export document data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/documents/{id}/verify:
+    post:
+      operationId: verifyDocument
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Verification result
+      security:
+        - jwtAuth: []
+      summary: Verify document (KYC)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  # --- Review Management ---
+  /dashboard/reviews:
+    get:
+      operationId: adminListReviews
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of reviews
+      security:
+        - jwtAuth: []
+      summary: List/search reviews
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/reviews/{id}/export:
+    get:
+      operationId: exportReviewData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Review data export
+      security:
+        - jwtAuth: []
+      summary: Export review data
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/reviews/{id}/moderate:
+    post:
+      operationId: moderateReview
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                  - remove
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Moderation result
+      security:
+        - jwtAuth: []
+      summary: Moderate review (approve/reject/remove)
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/reviews/{id}/respond:
+    post:
+      operationId: adminRespondToReview
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: response
+          required: true
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Response added
+      security:
+        - jwtAuth: []
+      summary: Respond to a review (admin)
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  # --- General Dashboard Management ---
+  /dashboard/analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      responses:
+        "200":
+          description: Analytics summary
+          schema:
+            $ref: "#/definitions/AnalyticsOverviewResponse"
+      security:
+        - jwtAuth: []
+      summary: Get platform analytics summary
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/audit-logs:
+    get:
+      operationId: listAuditLogs
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of audit logs
+      security:
+        - jwtAuth: []
+      summary: List admin/audit logs
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/notifications:
+    get:
+      operationId: listNotifications
+      parameters:
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of notifications
+      security:
+        - jwtAuth: []
+      summary: List notifications
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: sendNotification
+      parameters:
+        - in: body
+          name: notification
+          required: true
+          schema:
+            $ref: "#/definitions/NotificationRequest"
+      responses:
+        "201":
+          description: Notification sent
+      security:
+        - jwtAuth: []
+      summary: Send notification
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/settings:
+    get:
+      operationId: getSettings
+      responses:
+        "200":
+          description: Settings/config
+          schema:
+            $ref: "#/definitions/SettingsResponse"
+      security:
+        - jwtAuth: []
+      summary: Get platform settings/config
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateSettings
+      parameters:
+        - in: body
+          name: settings
+          required: true
+          schema:
+            $ref: "#/definitions/SettingsUpdateRequest"
+      responses:
+        "200":
+          description: Settings updated
+          schema:
+            $ref: "#/definitions/SettingsResponse"
+      security:
+        - jwtAuth: []
+      summary: Update platform settings/config
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+definitions:
+  AnalyticsOverviewResponse:
+    type: object
+    properties:
+      total_users:
+        type: integer
+      total_listings:
+        type: integer
+      total_bookings:
+        type: integer
+      total_revenue:
+        type: number
+        format: double
+      active_users:
+        type: integer
+      new_signups:
+        type: integer
+      period:
+        type: string
+        description: Analytics period (e.g. 'last_30_days')
+  BookingAdminUpdateRequest:
+    type: object
+    properties:
+      status:
+        type: string
+        enum:
+          - pending
+          - confirmed
+          - cancelled
+          - completed
+          - disputed
+      admin_notes:
+        type: string
+      refund_amount:
+        type: number
+        format: double
+    required:
+      - status
+  ListingAdminUpdateRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - pending
+          - rejected
+          - removed
+      price:
+        type: number
+        format: double
+      max_guests:
+        type: integer
+      instant_book:
+        type: boolean
+      admin_notes:
+        type: string
+    required:
+      - title
+      - status
+  Gender:
+    type: string
+    enum:
+      - Male
+      - Female
+      - Non-binary
+      - Transgender
+      - Genderqueer
+      - Genderfluid
+      - Agender
+      - Two-spirit
+      - Bigender
+      - Other
+      - Prefer not to say
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      bio:
+        type: string
+      avatar:
+        type: string
+        format: uri
+      phone:
+        type: string
+      birthday:
+        type: string
+        format: date-time
+      city:
+        type: string
+      country:
+        type: string
+        maxItems: 10
+      interests:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      languages:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      gender:
+        $ref: "#/definitions/Gender"
+  UserSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+  Listing:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique ID of the listing
+      title:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+      available:
+        type: boolean
+      baggage_drop:
+        type: boolean
+      instant_book:
+        type: boolean
+      cancellation_policy:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      deleted:
+        type: boolean
+      max_guests:
+        type: integer
+      price:
+        type: number
+        format: float
+      rating:
+        type: number
+        format: float
+      reviews:
+        type: string
+      amenities:
+        type: array
+        items:
+          type: string
+      house_rules:
+        type: array
+        items:
+          type: string
+      photos:
+        type: array
+        items:
+          type: string
+        description: List of image URLs
+      thumbnail:
+        type: string
+        description: URL to thumbnail image
+      host:
+        type: object
+        properties:
+          id:
+            type: string
+          first_name:
+            type: string
+          gender:
+            type: string
+          avatar:
+            type: string
+          rating:
+            type: number
+            format: float
+      location:
+        type: object
+        properties:
+          address:
+            type: object
+            properties:
+              street:
+                type: string
+              unit_number:
+                type: string
+              city:
+                type: string
+              province:
+                type: string
+              postal_code:
+                type: string
+              country:
+                type: string
+              flag:
+                type: string
+          latitude:
+            type: number
+            format: float
+          longitude:
+            type: number
+            format: float
+          geohash:
+            type: string
+  ListingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      price:
+        type: number
+        format: float
+      rating:
+        type: number
+        format: float
+      host:
+        type: object
+        properties:
+          id:
+            type: string
+          first_name:
+            type: string
+          gender:
+            type: string
+          avatar:
+            type: string
+          rating:
+            type: number
+            format: float
+      location:
+        type: object
+        properties:
+          address:
+            type: object
+            properties:
+              street:
+                type: string
+              unit_number:
+                type: string
+              city:
+                type: string
+              province:
+                type: string
+              postal_code:
+                type: string
+              country:
+                type: string
+              flag:
+                type: string
+          latitude:
+            type: number
+            format: float
+          longitude:
+            type: number
+            format: float
+          geohash:
+            type: string
+  Error400Response:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 400
+          message:
+            type: string
+            example: Invalid request
+    required:
+      - status
+      - error
+  NotificationRequest:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      user_id:
+        type: string
+      type:
+        type: string
+        enum:
+          - info
+          - warning
+          - alert
+          - success
+      data:
+        type: object
+  Error404Response:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 404
+          message:
+            type: string
+            example: Not found
+    required:
+      - status
+      - error
+  SettingsResponse:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+      updated_at:
+        type: string
+        format: date-time
+  SettingsUpdateRequest:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+  UserAdminUpdateRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - suspended
+          - banned
+          - pending
+      role:
+        type: string
+        enum:
+          - user
+          - admin
+          - moderator
+      verified:
+        type: boolean
+    required:
+      - email
+  Booking:
+    type: object
+    properties:
+      id:
+        type: string
+      listing_id:
+        type: string
+      payment_id:
+        type: string
+      check_in:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      check_out:
+        type: string
+        format: date-time
+        example: "2025-06-05T11:00:00Z"
+      created_at:
+        type: string
+        format: date-time
+        example: "2025-06-05T11:00:00Z"
+      amount:
+        type: number
+        format: float
+        example: 500
+      rating:
+        type: number
+        format: float
+        example: 4.5
+      days:
+        type: integer
+        example: 4
+      guests:
+        type: integer
+        example: 2
+      guest:
+        type: string
+      host:
+        type: string
+      status:
+        type: string
+        enum:
+          - pending
+          - accepted
+          - rejected
+          - cancelled
+          - completed
+          - awaiting_payment
+        example: pending
+
+  BookingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+        example: bkg_001
+      check_in:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      check_out:
+        type: string
+        format: date-time
+        example: "2025-06-05T11:00:00Z"
+      host:
+        type: string
+      guest:
+        type: string
+      status:
+        type: string
+        enum:
+          - pending
+          - cancelled
+          - completed
+          - flagged
+          - accepted
+        example: pending
+securityDefinitions:
+  googleApiKey:
+    in: header
+    name: api_key
+    type: apiKey
+  jwtAuth:
+    in: header
+    name: Authorization
+    type: apiKey

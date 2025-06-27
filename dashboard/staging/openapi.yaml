@@ -4,12 +4,11 @@ info:
     email: info@aircouch.com
     name: Inspried Tech
     url: https://www.inspiredtech.ca
-  description: API for Project X, a prototype for the x platform.
+  description: API for Project X dashoard.
   termsOfService: https://www.inspiredtech.ca/terms
-  title: project-x-api
+  title: project-x-api-dashboard
   version: 1.0.0
-# NOTE: we will add the gateway later when the service is deployed.
-# host: project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev
+host: project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev
 basePath: /api/v1
 schemes:
   - https

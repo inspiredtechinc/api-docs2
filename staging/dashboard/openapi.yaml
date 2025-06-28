@@ -306,6 +306,58 @@ paths:
         "400":
           description: Invalid request
 
+  /dashboard/users/{id}/verify:
+    put:
+      summary: Restore/Revoke a user verification
+      tags:
+        - user
+      operationId: verifyUser
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          type: string
+          maxLength: 32
+        - name: verify
+          in: body
+          description: User verified status
+          required: true
+          schema:
+            type: object
+            properties:
+              verified:
+                type: string
+                example: true
+                enum:
+                  - true
+                  - false
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              user_id:
+                type: string
+                example: user_id123
+        "400":
+          description: Invalid User ID
+          schema:
+            $ref: "#/definitions/Error400Response"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+
   /dashboard/users/{id}/status:
     put:
       summary: Update user status

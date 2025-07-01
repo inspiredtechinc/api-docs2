@@ -30,6 +30,23 @@ tags:
   - description: Review Management
     name: review
 paths:
+  /dashboard/{proxy}:
+    options:
+      summary: CORS support
+      operationId: corsAny
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: No content
+
   # --- Health check routes ---
   /dashboard/heartbeat:
     get:

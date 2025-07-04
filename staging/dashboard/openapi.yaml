@@ -350,7 +350,7 @@ paths:
             properties:
               verified:
                 type: string
-                example: true
+                example: "true"
                 enum:
                   - true
                   - false
@@ -879,6 +879,58 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/listings/{id}/verify:
+    put:
+      summary: Restore/Revoke a listing verification
+      operationId: verifyListing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Listing ID
+          required: true
+          type: string
+          maxLength: 32
+        - name: verify
+          in: body
+          description: Listing verified status
+          required: true
+          schema:
+            type: object
+            properties:
+              verified:
+                type: string
+                example: "true"
+                enum:
+                  - true
+                  - false
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              listing_id:
+                type: string
+        "400":
+          description: Invalid listing ID
+          schema:
+            $ref: "#/definitions/Error400Response"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+
   /dashboard/listings/{id}/export:
     get:
       operationId: exportListingData
@@ -1366,6 +1418,10 @@ definitions:
         items:
           type: string
         maxItems: 10
+      verified:
+        type: boolean
+      status:
+        type: string
       created_at:
         type: string
         format: date-time
@@ -1406,6 +1462,8 @@ definitions:
       baggage_drop:
         type: boolean
       instant_book:
+        type: boolean
+      verified:
         type: boolean
       cancellation_policy:
         type: string

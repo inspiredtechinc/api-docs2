@@ -105,6 +105,13 @@ paths:
 
   # --- Login routes ---
   /dashboard/login/email:
+    options:
+      summary: CORS for login
+      operationId: corsLoginEmail
+      x-google-allow: all
+      responses:
+        "204":
+          description: No content
     post:
       summary: Login by email
       operationId: loginByEmail

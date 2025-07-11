@@ -33,19 +33,19 @@ tags:
   - description: Review Management
     name: review
 paths:
-  # /dashboard/{proxy+}:
-  #   options:
-  #     summary: CORS fallback
-  #     operationId: corsProxy
-  #     x-google-allow: all
-  #     parameters:
-  #       - name: proxy+
-  #         in: path
-  #         required: true
-  #         type: string
-  #     responses:
-  #       "204":
-  #         description: Preflight OK
+  /dashboard/{proxy}:
+    options:
+      summary: CORS fallback
+      operationId: corsProxy
+      x-google-allow: all
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
 
   # --- Health check routes ---
   /dashboard/heartbeat:
@@ -105,6 +105,13 @@ paths:
 
   # --- Login routes ---
   /dashboard/login/email:
+    options:
+      summary: CORS for login
+      operationId: corsLoginEmail
+      x-google-allow: all
+      responses:
+        "204":
+          description: No content
     post:
       summary: Login by email
       operationId: loginByEmail

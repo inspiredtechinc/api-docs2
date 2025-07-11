@@ -43,6 +43,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: Origin
+          in: header
+          required: false
+          type: string
       responses:
         "204":
           description: No content

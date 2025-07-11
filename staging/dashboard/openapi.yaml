@@ -33,7 +33,7 @@ tags:
   - description: Review Management
     name: review
 paths:
-  /api/v1/dashboard/{proxy+}:
+  /dashboard/{proxy+}:
     options:
       summary: CORS fallback
       operationId: corsProxy

@@ -8,10 +8,10 @@ info:
   termsOfService: https://www.inspiredtech.ca/terms
   title: project-x-api-dashboard
   version: 1.0.0
-host: project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev
-x-google-endpoints:
-  - name: project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev
-    allowCors: True
+host: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
+# x-google-endpoints:
+# - name: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
+#   allowCors: True
 basePath: /api/v1
 schemes:
   - https
@@ -35,9 +35,12 @@ tags:
 paths:
   /dashboard/{proxy}:
     options:
-      summary: CORS fallback
-      operationId: corsProxy
+      summary: CORS support
+      operationId: corsAny
       x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
       parameters:
         - name: proxy
           in: path
@@ -45,7 +48,7 @@ paths:
           type: string
       responses:
         "204":
-          description: Preflight OK
+          description: No content
 
   # --- Health check routes ---
   /dashboard/heartbeat:
@@ -105,13 +108,6 @@ paths:
 
   # --- Login routes ---
   /dashboard/login/email:
-    options:
-      summary: CORS for login
-      operationId: corsLoginEmail
-      x-google-allow: all
-      responses:
-        "204":
-          description: No content
     post:
       summary: Login by email
       operationId: loginByEmail

@@ -108,13 +108,6 @@ paths:
 
   # --- Login routes ---
   /dashboard/login/email:
-    options:
-      summary: CORS preflight
-      operationId: corsPreflightLoginByEmail
-      x-google-allow: all
-      responses:
-        "204":
-          description: Preflight OK
     post:
       summary: Login by email
       operationId: loginByEmail

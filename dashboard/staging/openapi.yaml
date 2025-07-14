@@ -9,9 +9,9 @@ info:
   title: project-x-api-dashboard
   version: 1.0.0
 host: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
-# x-google-endpoints:
-# - name: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
-#   allowCors: True
+x-google-endpoints:
+  - name: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
+    allowCors: True
 basePath: /api/v1
 schemes:
   - https
@@ -33,7 +33,7 @@ tags:
   - description: Review Management
     name: review
 paths:
-  /dashboard/{proxy}:
+  /dashboard/{proxy+}:
     options:
       summary: CORS support
       operationId: corsAny
@@ -42,13 +42,13 @@ paths:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
       parameters:
-        - name: proxy
+        - name: proxy+
           in: path
           required: true
           type: string
       responses:
         "204":
-          description: No content
+          description: Preflight OK
 
   # --- Health check routes ---
   /dashboard/heartbeat:
@@ -108,6 +108,13 @@ paths:
 
   # --- Login routes ---
   /dashboard/login/email:
+    options:
+      summary: CORS preflight
+      operationId: corsPreflightLoginByEmail
+      x-google-allow: all
+      responses:
+        "204":
+          description: Preflight OK
     post:
       summary: Login by email
       operationId: loginByEmail

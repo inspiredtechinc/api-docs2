@@ -32,17 +32,71 @@ tags:
     name: listing
   - description: Review Management
     name: review
+  - description: CORs
+    name: cors
 paths:
-  /dashboard/{proxy+}:
+  /dashboard/{proxy}:
     options:
       summary: CORS support
       operationId: corsAny
+      tags:
+        - cors
       x-google-allow: all
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
       parameters:
-        - name: proxy+
+        - name: proxy
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+
+  /dashboard/{proxy}/{proxy1}:
+    options:
+      summary: CORS support
+      operationId: corsAny1
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+        - name: proxy1
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+
+  /dashboard/{proxy}/{proxy1}/{proxy2}:
+    options:
+      summary: CORS support
+      operationId: corsAny2
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+        - name: proxy1
+          in: path
+          required: true
+          type: string
+        - name: proxy2
           in: path
           required: true
           type: string

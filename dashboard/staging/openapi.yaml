@@ -22,8 +22,8 @@ produces:
 tags:
   - description: dashboard heartbeat
     name: heartbeat
-  - description: Dashboard login
-    name: login
+  - description: Dashboard Authentication
+    name: auth
   - description: User Management
     name: user
   - description: Booking Management
@@ -160,13 +160,13 @@ paths:
           schema:
             $ref: "#/definitions/Error400Response"
 
-  # --- Login routes ---
-  /dashboard/login/email:
+  # --- Authentication routes ---
+  /dashboard/auth/login/email:
     post:
       summary: Login by email
       operationId: loginByEmail
       tags:
-        - login
+        - auth
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
@@ -187,7 +187,7 @@ paths:
               - password
       responses:
         "200":
-          description: Authenticated User
+          description: Authenticated User | token will be stored in the cookies
           schema:
             type: object
             properties:
@@ -195,19 +195,58 @@ paths:
                 example: ok
                 type: string
               user:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  email:
-                    type: string
-                  first_name:
-                    type: string
-                  last_name:
-                    type: string
-                  access_token:
-                    type: string
-                    description: JWT token for authenticated user
+                $ref: "#/definitions/UserSummary"
+        "400":
+          description: Invalid body
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/auth/logout:
+    post:
+      summary: Logout the current user
+      operationId: logoutUser
+      tags:
+        - auth
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              message:
+                type: string
+                example: User logged out successfully
+        "400":
+          description: Invalid body
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/auth/session:
+    get:
+      summary: Get current sessions
+      operationId: getCurrentUserSession
+      tags:
+        - auth
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        "200":
+          description: Authenticated User | Validate user by token in the cookies
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              user:
+                $ref: "#/definitions/UserSummary"
         "400":
           description: Invalid body
           schema:
@@ -1492,16 +1531,20 @@ definitions:
     properties:
       id:
         type: string
+      email:
+        type: string
       first_name:
         type: string
       last_name:
-        type: string
-      email:
         type: string
       role:
         type: string
       status:
         type: string
+      permissions:
+        type: array
+        items:
+          type: string
   Listing:
     type: object
     properties:

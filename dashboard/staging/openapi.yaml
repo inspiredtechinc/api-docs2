@@ -1162,89 +1162,269 @@ paths:
         path_translation: APPEND_PATH_TO_ADDRESS
 
   # --- Review Management ---
-  /dashboard/reviews:
+  /dashboard/reviews/listing/{id}:
     get:
-      operationId: adminListReviews
-      parameters:
-        - in: query
-          name: query
-          type: string
-        - in: query
-          name: status
-          type: string
-        - default: 1
-          in: query
-          name: page
-          type: integer
-        - default: 20
-          in: query
-          name: limit
-          type: integer
-      responses:
-        "200":
-          description: List of reviews
-      security:
-        - jwtAuth: []
-      summary: List/search reviews
+      summary: List all reviews of a listing
+      operationId: getListingReviews
       tags:
         - review
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-
-  /dashboard/reviews/{id}/export:
-    get:
-      operationId: exportReviewData
+      security:
+        - jwtAuth: []
       parameters:
-        - in: path
+        - description: Listing ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - default: 1
+          description: Page number
+          in: query
+          minimum: 0
+          name: page
+          type: integer
+        - default: 10
+          description: Results per page
+          in: query
+          minimum: 0
+          name: limit
+          type: integer
+        - description: Filter by user status
+          enum:
+            - visible
+            - hidden
+          in: query
+          name: status
+          type: string
+          default: visible
+      responses:
+        "200":
+          description: List of reviews
+          schema:
+            type: object
+            properties:
+              limit:
+                example: 10
+                type: integer
+              page:
+                example: 1
+                type: integer
+              pages:
+                example: 1
+                type: integer
+              status:
+                example: ok
+                type: string
+              total:
+                example: 2
+                type: integer
+              reviews:
+                items:
+                  $ref: "#/definitions/ReviewSummary"
+                type: array
+        "400":
+          description: Invalid query
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/reviews/user/{id}:
+    get:
+      summary: List all reviews of an user
+      operationId: getUserReviews
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - default: 1
+          description: Page number
+          in: query
+          minimum: 0
+          name: page
+          type: integer
+        - default: 10
+          description: Results per page
+          in: query
+          minimum: 0
+          name: limit
+          type: integer
+        - description: Filter by user status
+          enum:
+            - visible
+            - hidden
+          in: query
+          name: status
+          type: string
+          default: visible
+      responses:
+        "200":
+          description: List of reviews
+          schema:
+            type: object
+            properties:
+              limit:
+                example: 10
+                type: integer
+              page:
+                example: 1
+                type: integer
+              pages:
+                example: 1
+                type: integer
+              status:
+                example: ok
+                type: string
+              total:
+                example: 2
+                type: integer
+              reviews:
+                items:
+                  $ref: "#/definitions/ReviewSummary"
+                type: array
+        "400":
+          description: Invalid query
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/reviews/{id}:
+    get:
+      summary: Get a review detail by id
+      operationId: getReviewById
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: Review ID
+          in: path
+          maxLength: 32
           name: id
           required: true
           type: string
       responses:
         "200":
-          description: Review data export
-      security:
-        - jwtAuth: []
-      summary: Export review data
+          description: Review detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              review:
+                $ref: "#/definitions/Review"
+        "400":
+          description: Invalid User ID
+          schema:
+            $ref: "#/definitions/Error400Response"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+    delete:
+      summary: Delete a review detail by id
+      operationId: deleteReviewById
       tags:
         - review
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-
-  /dashboard/reviews/{id}/moderate:
-    post:
-      operationId: moderateReview
+      security:
+        - jwtAuth: []
       parameters:
-        - in: path
+        - description: Review ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - default: soft
+          description: Delete type
+          enum:
+            - soft
+            - hard
+          in: query
+          name: option
+          type: string
+      responses:
+        "200":
+          description: Review detail
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              review_id:
+                type: string
+        "400":
+          description: Invalid User ID
+          schema:
+            $ref: "#/definitions/Error400Response"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/Error404Response"
+
+  /dashboard/reviews/{id}/hidden:
+    put:
+      summary: Update review hidden status
+      operationId: updateReviewHiddenStatus
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - description: Review ID
+          in: path
+          maxLength: 32
           name: id
           required: true
           type: string
         - in: body
-          name: action
-          required: true
+          name: status
           schema:
-            properties:
-              action:
-                enum:
-                  - approve
-                  - reject
-                  - remove
-                type: string
-              reason:
-                type: string
             type: object
+            properties:
+              hidden:
+                enum:
+                  - true
+                  - false
+                type: string
+            required:
+              - hidden
       responses:
         "200":
-          description: Moderation result
-      security:
-        - jwtAuth: []
-      summary: Moderate review (approve/reject/remove)
-      tags:
-        - review
-      x-google-backend:
-        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
-        path_translation: APPEND_PATH_TO_ADDRESS
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              review_id:
+                type: string
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/Error404Response"
 
   /dashboard/reviews/{id}/respond:
     post:
@@ -1268,6 +1448,26 @@ paths:
       security:
         - jwtAuth: []
       summary: Respond to a review (admin)
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+
+  /dashboard/reviews/{id}/export:
+    get:
+      operationId: exportReviewData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Review data export
+      security:
+        - jwtAuth: []
+      summary: Export review data
       tags:
         - review
       x-google-backend:
@@ -1698,117 +1898,7 @@ definitions:
             format: float
           geohash:
             type: string
-  Error400Response:
-    type: object
-    properties:
-      status:
-        type: string
-        example: error
-      error:
-        type: object
-        properties:
-          code:
-            type: integer
-            example: 400
-          message:
-            type: string
-            example: Invalid request
-    required:
-      - status
-      - error
-  NotificationRequest:
-    type: object
-    required:
-      - message
-    properties:
-      message:
-        type: string
-      user_id:
-        type: string
-      type:
-        type: string
-        enum:
-          - info
-          - warning
-          - alert
-          - success
-      data:
-        type: object
-  Error404Response:
-    type: object
-    properties:
-      status:
-        type: string
-        example: error
-      error:
-        type: object
-        properties:
-          code:
-            type: integer
-            example: 404
-          message:
-            type: string
-            example: Not found
-    required:
-      - status
-      - error
-  SettingsResponse:
-    type: object
-    properties:
-      maintenance_mode:
-        type: boolean
-      feature_toggles:
-        type: object
-        additionalProperties:
-          type: boolean
-      notification_templates:
-        type: object
-        additionalProperties:
-          type: string
-      updated_at:
-        type: string
-        format: date-time
-  SettingsUpdateRequest:
-    type: object
-    properties:
-      maintenance_mode:
-        type: boolean
-      feature_toggles:
-        type: object
-        additionalProperties:
-          type: boolean
-      notification_templates:
-        type: object
-        additionalProperties:
-          type: string
-  UserAdminUpdateRequest:
-    type: object
-    properties:
-      first_name:
-        type: string
-      last_name:
-        type: string
-      email:
-        type: string
-      phone:
-        type: string
-      status:
-        type: string
-        enum:
-          - active
-          - suspended
-          - banned
-          - pending
-      role:
-        type: string
-        enum:
-          - user
-          - admin
-          - moderator
-      verified:
-        type: boolean
-    required:
-      - email
+
   Booking:
     type: object
     properties:
@@ -1886,6 +1976,252 @@ definitions:
           - flagged
           - accepted
         example: pending
+
+  Review:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique identifier for the review
+      author:
+        type: string
+        description: ID of the user who wrote the review
+      booking_id:
+        type: string
+        description: ID of the associated booking
+      listing_id:
+        type: string
+        description: ID of the listing being reviewed
+      category:
+        type: string
+        description: Category of the review (e.g. cleanliness)
+      comment:
+        type: string
+        description: Text comment provided by the reviewer
+      emoji_sentiment:
+        type: string
+      metrics:
+        type: object
+        properties:
+          accuracy:
+            type: number
+            format: float
+          check_in:
+            type: number
+            format: float
+          cleanliness:
+            type: number
+            format: float
+          communication:
+            type: number
+            format: float
+          location:
+            type: number
+            format: float
+          value:
+            type: number
+            format: float
+      overall_rating:
+        type: number
+        format: float
+      status:
+        type: string
+        description: Moderation status of the review
+      target:
+        type: string
+        description: The entity this review targets (e.g., listing ID)
+      type:
+        type: string
+        description: Type of target (e.g., "listing")
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      version:
+        type: integer
+        description: Review version number
+      edit_history:
+        type: array
+      hidden:
+        type: boolean
+
+  ReviewSummary:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique identifier for the review
+      author:
+        type: string
+        description: ID of the user who wrote the review
+      booking_id:
+        type: string
+        description: ID of the associated booking
+      listing_id:
+        type: string
+        description: ID of the listing being reviewed
+      category:
+        type: string
+        description: Category of the review (e.g. cleanliness)
+      comment:
+        type: string
+        description: Text comment provided by the reviewer
+      emoji_sentiment:
+        type: string
+      metrics:
+        type: object
+        properties:
+          accuracy:
+            type: number
+            format: float
+          check_in:
+            type: number
+            format: float
+          cleanliness:
+            type: number
+            format: float
+          communication:
+            type: number
+            format: float
+          location:
+            type: number
+            format: float
+          value:
+            type: number
+            format: float
+      overall_rating:
+        type: number
+        format: float
+      status:
+        type: string
+      hidden:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Error400Response:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 400
+          message:
+            type: string
+            example: Invalid request
+    required:
+      - status
+      - error
+
+  NotificationRequest:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      user_id:
+        type: string
+      type:
+        type: string
+        enum:
+          - info
+          - warning
+          - alert
+          - success
+      data:
+        type: object
+
+  Error404Response:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 404
+          message:
+            type: string
+            example: Not found
+    required:
+      - status
+      - error
+
+  SettingsResponse:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+      updated_at:
+        type: string
+        format: date-time
+
+  SettingsUpdateRequest:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+
+  UserAdminUpdateRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - suspended
+          - banned
+          - pending
+      role:
+        type: string
+        enum:
+          - user
+          - admin
+          - moderator
+      verified:
+        type: boolean
+    required:
+      - email
+
 securityDefinitions:
   googleApiKey:
     in: header

@@ -8,6 +8,9 @@ info:
   termsOfService: https://www.inspiredtech.ca/terms
   title: project-x-api-dashboard
   version: 1.0.0
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
 host: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
 x-google-endpoints:
   - name: "project-x-dashboard-staging-gateway-8ua0taf7.uc.gateway.dev"
@@ -32,78 +35,12 @@ tags:
     name: listing
   - description: Review Management
     name: review
+  - description: Firebase Management
+    name: firebase
   - description: CORs
     name: cors
+
 paths:
-  /dashboard/{proxy}:
-    options:
-      summary: CORS support
-      operationId: corsAny
-      tags:
-        - cors
-      x-google-allow: all
-      x-google-backend:
-        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
-        path_translation: APPEND_PATH_TO_ADDRESS
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          type: string
-      responses:
-        "204":
-          description: Preflight OK
-
-  /dashboard/{proxy}/{proxy1}:
-    options:
-      summary: CORS support
-      operationId: corsAny1
-      tags:
-        - cors
-      x-google-allow: all
-      x-google-backend:
-        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
-        path_translation: APPEND_PATH_TO_ADDRESS
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          type: string
-        - name: proxy1
-          in: path
-          required: true
-          type: string
-      responses:
-        "204":
-          description: Preflight OK
-
-  /dashboard/{proxy}/{proxy1}/{proxy2}:
-    options:
-      summary: CORS support
-      operationId: corsAny2
-      tags:
-        - cors
-      x-google-allow: all
-      x-google-backend:
-        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
-        path_translation: APPEND_PATH_TO_ADDRESS
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          type: string
-        - name: proxy1
-          in: path
-          required: true
-          type: string
-        - name: proxy2
-          in: path
-          required: true
-          type: string
-      responses:
-        "204":
-          description: Preflight OK
-
   # --- Health check routes ---
   /dashboard/heartbeat:
     get:
@@ -114,6 +51,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
       responses:
         "200":
           description: Heartbeat
@@ -170,6 +108,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
       parameters:
         - in: body
           name: body
@@ -210,6 +149,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
       responses:
         "200":
           description: Logout successful
@@ -236,6 +176,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
       responses:
         "200":
           description: Authenticated User | Validate user by token in the cookies
@@ -448,8 +389,8 @@ paths:
                 type: string
                 example: "true"
                 enum:
-                  - true
-                  - false
+                  - "true"
+                  - "false"
       responses:
         "200":
           description: Success
@@ -582,6 +523,8 @@ paths:
       responses:
         "200":
           description: User banned
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Ban or suspend a user
@@ -602,6 +545,8 @@ paths:
       responses:
         "200":
           description: User data export
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Export user data
@@ -622,6 +567,8 @@ paths:
       responses:
         "200":
           description: Impersonation token/session
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Impersonate user (admin login as user)
@@ -640,6 +587,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
       parameters:
         - in: body
           name: file
@@ -662,6 +610,8 @@ paths:
               url:
                 type: string
                 example: https://unsplash.com/photos/yellow-flowers-bloom-beneath-a-reaching-shadow-0FPDfErlKzQ
+        "400":
+          description: Bad request
 
   # --- Booking Management ---
   /dashboard/bookings:
@@ -731,6 +681,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/definitions/BookingSummary"
+        "400":
+          description: Bad request
 
   /dashboard/bookings/{id}:
     get:
@@ -771,6 +723,8 @@ paths:
       responses:
         "204":
           description: Booking deleted
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Delete booking (admin)
@@ -794,6 +748,8 @@ paths:
       responses:
         "200":
           description: Booking updated
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Update booking (admin)
@@ -814,6 +770,8 @@ paths:
       responses:
         "200":
           description: Booking data export
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Export booking data
@@ -845,6 +803,8 @@ paths:
       responses:
         "200":
           description: Refund processed
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Refund booking
@@ -896,6 +856,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/definitions/ListingSummary"
+        "400":
+          description: Bad request
 
   /dashboard/listings/{id}:
     delete:
@@ -908,6 +870,8 @@ paths:
       responses:
         "204":
           description: Listing deleted
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Delete listing (admin)
@@ -967,6 +931,8 @@ paths:
       responses:
         "200":
           description: Listing updated
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Update listing (admin)
@@ -1005,8 +971,8 @@ paths:
                 type: string
                 example: "true"
                 enum:
-                  - true
-                  - false
+                  - "true"
+                  - "false"
       responses:
         "200":
           description: Success
@@ -1038,6 +1004,8 @@ paths:
       responses:
         "200":
           description: Listing data export
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Export listing data
@@ -1070,6 +1038,8 @@ paths:
       responses:
         "200":
           description: Moderation result
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Moderate listing (approve/reject)
@@ -1101,6 +1071,8 @@ paths:
       responses:
         "200":
           description: List of documents
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: List/search documents (KYC, verification)
@@ -1120,6 +1092,8 @@ paths:
       responses:
         "200":
           description: Document data export
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Export document data
@@ -1152,6 +1126,8 @@ paths:
       responses:
         "200":
           description: Verification result
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Verify document (KYC)
@@ -1162,7 +1138,7 @@ paths:
         path_translation: APPEND_PATH_TO_ADDRESS
 
   # --- Review Management ---
-  /dashboard/reviews/listing/{id}:
+  /dashboard/listings/{id}/reviews:
     get:
       summary: List all reviews of a listing
       operationId: getListingReviews
@@ -1230,7 +1206,7 @@ paths:
           schema:
             $ref: "#/definitions/Error400Response"
 
-  /dashboard/reviews/user/{id}:
+  /dashboard/users/{id}/reviews:
     get:
       summary: List all reviews of an user
       operationId: getUserReviews
@@ -1405,8 +1381,8 @@ paths:
             properties:
               hidden:
                 enum:
-                  - true
-                  - false
+                  - "true"
+                  - "false"
                 type: string
             required:
               - hidden
@@ -1445,6 +1421,8 @@ paths:
       responses:
         "200":
           description: Response added
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Respond to a review (admin)
@@ -1465,6 +1443,8 @@ paths:
       responses:
         "200":
           description: Review data export
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Export review data
@@ -1483,6 +1463,8 @@ paths:
           description: Analytics summary
           schema:
             $ref: "#/definitions/AnalyticsOverviewResponse"
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Get platform analytics summary
@@ -1510,6 +1492,8 @@ paths:
       responses:
         "200":
           description: List of audit logs
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: List admin/audit logs
@@ -1534,6 +1518,8 @@ paths:
       responses:
         "200":
           description: List of notifications
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: List notifications
@@ -1553,6 +1539,8 @@ paths:
       responses:
         "201":
           description: Notification sent
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Send notification
@@ -1570,6 +1558,8 @@ paths:
           description: Settings/config
           schema:
             $ref: "#/definitions/SettingsResponse"
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Get platform settings/config
@@ -1591,6 +1581,8 @@ paths:
           description: Settings updated
           schema:
             $ref: "#/definitions/SettingsResponse"
+        "400":
+          description: Bad request
       security:
         - jwtAuth: []
       summary: Update platform settings/config
@@ -1599,6 +1591,188 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
+
+  # --- Firebase management ---
+  /dashboard/firebase/config:
+    get:
+      summary: Get Firebase remote config
+      operationId: getFirebaseConfig
+      tags:
+        - firebase
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      responses:
+        "200":
+          description: Get firebase remote config
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              configs:
+                $ref: "#/definitions/FirebaseRemoteConfig"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/Error400Response"
+    post:
+      summary: Create Firebase remote config
+      operationId: createFirebaseConfig
+      tags:
+        - firebase
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              configName:
+                type: string
+              configValue:
+                type: object
+      responses:
+        "200":
+          description: Update a specific firebase remote config
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              parameters:
+                type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  /dashboard/firebase/config/{key}:
+    put:
+      summary: Update Firebase remote config
+      operationId: updateFirebaseConfig
+      tags:
+        - firebase
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - description: Config name
+          in: path
+          maxLength: 32
+          name: key
+          required: true
+          type: string
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              configValue:
+                type: object
+      responses:
+        "200":
+          description: Update a specific firebase remote config
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              parameters:
+                type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/Error400Response"
+
+  # --- CORs ---
+  /dashboard/{proxy}:
+    options:
+      summary: CORS support
+      operationId: corsAny
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+        "400":
+          description: Bad request
+
+  /dashboard/{proxy}/{proxy1}:
+    options:
+      summary: CORS support
+      operationId: corsAny1
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+        - name: proxy1
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+        "400":
+          description: Bad request
+
+  /dashboard/{proxy}/{proxy1}/{proxy2}:
+    options:
+      summary: CORS support
+      operationId: corsAny2
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+        - name: proxy1
+          in: path
+          required: true
+          type: string
+        - name: proxy2
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+        "400":
+          description: Bad request
 
 definitions:
   AnalyticsOverviewResponse:
@@ -2044,6 +2218,8 @@ definitions:
         description: Review version number
       edit_history:
         type: array
+        items:
+          type: object
       hidden:
         type: boolean
 
@@ -2104,6 +2280,16 @@ definitions:
       updated_at:
         type: string
         format: date-time
+
+  FirebaseRemoteConfig:
+    type: object
+    properties:
+      key:
+        type: string
+        description: Config name
+      value:
+        type: object
+        description: Config value
 
   Error400Response:
     type: object

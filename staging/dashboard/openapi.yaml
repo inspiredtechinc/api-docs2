@@ -37,6 +37,8 @@ tags:
     name: review
   - description: Firebase Management
     name: firebase
+  - description: User Feedback
+    name: feedback
   - description: CORs
     name: cors
 
@@ -1402,6 +1404,78 @@ paths:
           schema:
             $ref: "#/definitions/Error404Response"
 
+  /dashboard/reviews/{reviewId}/report:
+    post:
+      summary: Submit a report for a review
+      operationId: submitReviewReport
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - reason
+            properties:
+              reason:
+                type: string
+              comment:
+                type: string
+      responses:
+        200:
+          description: Report submitted successfully
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              report_id:
+                type: string
+        400:
+          description: Bad Request
+
+  /dashboard/reviews/{reviewId}/reports:
+    get:
+      summary: View all reports for a review
+      operationId: getReviewReports
+      tags:
+        - review
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: List of reports
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              reports:
+                type: array
+                items:
+                  $ref: "#/definitions/ReviewReport"
+        401:
+          description: Unauthorized
+
   /dashboard/reviews/{id}/respond:
     post:
       operationId: adminRespondToReview
@@ -1634,7 +1708,7 @@ paths:
           schema:
             type: object
             properties:
-              configName:
+              configKey:
                 type: string
               configValue:
                 type: object
@@ -1694,6 +1768,31 @@ paths:
           description: Bad request
           schema:
             $ref: "#/definitions/Error400Response"
+
+  # --- Feedback Management ---
+  /dashboard/feedback:
+    post:
+      summary: Submit app feedback
+      operationId: submitAppFeedback
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      tags:
+        - feedback
+      security: []
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/FeedbackRequest"
+      responses:
+        200:
+          description: Feedback submitted
+          schema:
+            $ref: "#/definitions/FeedbackResponse"
+        400:
+          description: Bad request
 
   # --- CORs ---
   /dashboard/{proxy}:
@@ -1765,6 +1864,40 @@ paths:
           required: true
           type: string
         - name: proxy2
+          in: path
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Preflight OK
+        "400":
+          description: Bad request
+
+  /dashboard/{proxy}/{proxy1}/{proxy2}/{proxy3}:
+    options:
+      summary: CORS support
+      operationId: corsAny3
+      tags:
+        - cors
+      x-google-allow: all
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security: []
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+        - name: proxy1
+          in: path
+          required: true
+          type: string
+        - name: proxy2
+          in: path
+          required: true
+          type: string
+        - name: proxy3
           in: path
           required: true
           type: string
@@ -2281,6 +2414,49 @@ definitions:
         type: string
         format: date-time
 
+  ReviewReport:
+    type: object
+    properties:
+      report_id:
+        type: string
+      reporter_id:
+        type: string
+      reason:
+        type: string
+        enum:
+          - spam
+          - harassment
+          - hate_speech
+          - nudity
+          - scam_or_fraud
+          - offensive_language
+          - misleading_information
+          - fake_review
+          - other
+      comment:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      status:
+        type: string
+        enum:
+          - pending
+          - reviewed
+          - dismissed
+      reviewed_by:
+        type: string
+      reviewed_at:
+        type: string
+      action_taken:
+        type: string
+        enum:
+          - none
+          - removed_review
+          - warned_user
+          - banned_user
+          - other
+
   FirebaseRemoteConfig:
     type: object
     properties:
@@ -2407,6 +2583,69 @@ definitions:
         type: boolean
     required:
       - email
+
+  FeedbackRequest:
+    type: object
+    required:
+      - user
+      - type
+      - title
+      - description
+      - platform
+      - device_model
+      - os_version
+      - app_version
+    properties:
+      user:
+        type: string
+        description: user_id
+      type:
+        type: string
+        enum: [bug, suggestion, feedback]
+      title:
+        type: string
+      description:
+        type: string
+      platform:
+        type: string
+        enum: [ios, android]
+      device_model:
+        type: string
+      os_version:
+        type: string
+      app_version:
+        type: string
+      network:
+        type: string
+      timezone:
+        type: string
+      attachments:
+        type: array
+        items:
+          type: object
+          properties:
+            file_name:
+              type: string
+            mime_type:
+              type: string
+            base64_data:
+              type: string
+      wantsUpdate:
+        type: boolean
+        description: Whether the user would like to be contacted regarding their feedback
+
+  FeedbackResponse:
+    type: object
+    properties:
+      report_id:
+        type: string
+      status:
+        type: string
+      submitted_at:
+        type: string
+        format: date-time
+      message:
+        type: string
 
 securityDefinitions:
   googleApiKey:

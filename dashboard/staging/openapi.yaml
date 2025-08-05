@@ -39,6 +39,8 @@ tags:
     name: firebase
   - description: User Feedback
     name: feedback
+  - description: Dashboard configuration
+    name: config
   - description: CORs
     name: cors
 
@@ -1794,6 +1796,37 @@ paths:
         400:
           description: Bad request
 
+  # --- Dashboard config ---
+  /dashboard/maintenance:
+    put:
+      summary: Update app maintenance config
+      operationId: updateMaintenanceConfig
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      tags:
+        - config
+      security: []
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/MaintenanceConfigRequest"
+      responses:
+        200:
+          description: Successfully updated the maintenance config
+          schema:
+            type: object
+            properties:
+              status:
+                example: ok
+                type: string
+              parameters:
+                type: object
+        400:
+          description: Bad request
+
   # --- CORs ---
   /dashboard/{proxy}:
     options:
@@ -2646,6 +2679,46 @@ definitions:
         format: date-time
       message:
         type: string
+
+  MaintenanceConfigRequest:
+    type: object
+    required:
+      - configValue
+    properties:
+      configValue:
+        type: object
+        required:
+          - active
+          - message
+          - start_time
+          - end_time
+          - services
+          - restrict_app_access
+          - updated_by
+          - initiated_at
+        properties:
+          active:
+            type: boolean
+          message:
+            type: string
+          start_time:
+            type: string
+            format: date-time
+          end_time:
+            type: string
+            format: date-time
+          services:
+            type: array
+            description: List of services affected by maintenance
+            items:
+              type: string
+          restrict_app_access:
+            type: boolean
+          updated_by:
+            type: string
+          initiated_at:
+            type: string
+            format: date-time
 
 securityDefinitions:
   googleApiKey:

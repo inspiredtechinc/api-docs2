@@ -1795,6 +1795,75 @@ paths:
             $ref: "#/definitions/FeedbackResponse"
         400:
           description: Bad request
+    get:
+      summary: List/Search feedback
+      description: Retrieve a list of feedback with optional search and filter parameters.
+      operationId: getAllFeedback
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      tags:
+        - feedback
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: user
+          in: query
+          description: Filter by user ID or email
+          type: string
+        - name: status
+          in: query
+          description: Filter by feedback status
+          type: string
+        - name: type
+          in: query
+          description: Filter by feedback type
+          type: string
+          enum:
+            - suggestion
+            - bug
+            - feedback
+        - name: page
+          in: query
+          description: Page number
+          type: integer
+          minimum: 0
+          default: 1
+        - name: limit
+          in: query
+          description: Results per page
+          type: integer
+          minimum: 0
+          default: 10
+        - name: query
+          in: query
+          description: Search query (e.g., created_at)
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              feedback:
+                type: array
+                items:
+                  $ref: "#/definitions/FeedbackResponse"
+              total:
+                type: integer
+              page:
+                type: integer
+              limit:
+                type: integer
+              pages:
+                type: integer
+        400:
+          description: Invalid query
+          schema:
+            $ref: "#/definitions/Error400Response"
 
   # --- Dashboard config ---
   /dashboard/maintenance:
@@ -1826,6 +1895,51 @@ paths:
                 type: object
         400:
           description: Bad request
+  #---Proxy-chat----------
+  /dashboard/proxychat:
+    post:
+      summary: Proxy chatbot request
+      description: Forwards a chatbot request to the configured chatbot service, returning its response.
+      operationId: proxyChatbot
+      tags:
+        - chatbot
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: body
+          name: body
+          description: Chatbot request payload
+          required: true
+          schema:
+            $ref: "#/definitions/ProxyChatRequest"
+      responses:
+        200:
+          description: Chatbot response
+          schema:
+            $ref: "#/definitions/ProxyChatResponse"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        401:
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        500:
+          description: Proxy failed
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
 
   # --- CORs ---
   /dashboard/{proxy}:
@@ -2719,6 +2833,59 @@ definitions:
           initiated_at:
             type: string
             format: date-time
+  ProxyChatRequest:
+    type: object
+    additionalProperties: false
+    properties:
+      message:
+        type: string
+        minLength: 1
+      conversation_id:
+        type: string
+      metadata:
+        type: object
+        additionalProperties: true
+    required:
+      - message
+
+  ProxyChatResponse:
+    type: object
+    additionalProperties: false
+    properties:
+      status:
+        type: string
+        example: ok
+      data:
+        type: object
+        description: Response payload from chatbot service
+        additionalProperties: true
+    required:
+      - status
+      - data
+
+  DashboardError:
+    type: object
+    additionalProperties: false
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        additionalProperties: false
+        properties:
+          code:
+            type: integer
+            example: 401
+          message:
+            type: string
+            example: Unauthorized! Email or password is not correct
+        required:
+          - code
+          - message
+    required:
+      - status
+      - error
 
 securityDefinitions:
   googleApiKey:

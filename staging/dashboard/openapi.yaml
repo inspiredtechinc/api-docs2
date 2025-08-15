@@ -1530,26 +1530,6 @@ paths:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
 
-  # --- General Dashboard Management ---
-  /dashboard/analytics/summary:
-    get:
-      operationId: getAnalyticsSummary
-      responses:
-        "200":
-          description: Analytics summary
-          schema:
-            $ref: "#/definitions/AnalyticsOverviewResponse"
-        "400":
-          description: Bad request
-      security:
-        - jwtAuth: []
-      summary: Get platform analytics summary
-      tags:
-        - dashboard
-      x-google-backend:
-        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
-        path_translation: APPEND_PATH_TO_ADDRESS
-
   /dashboard/audit-logs:
     get:
       operationId: listAuditLogs
@@ -1578,7 +1558,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-  /dashboard/metrics/summary:
+  /dashboard/analytics/summary:
     get:
       produces:
         - application/json
@@ -2407,25 +2387,6 @@ paths:
           description: Bad request
 
 definitions:
-  AnalyticsOverviewResponse:
-    type: object
-    properties:
-      total_users:
-        type: integer
-      total_listings:
-        type: integer
-      total_bookings:
-        type: integer
-      total_revenue:
-        type: number
-        format: double
-      active_users:
-        type: integer
-      new_signups:
-        type: integer
-      period:
-        type: string
-        description: Analytics period (e.g. 'last_30_days')
   BookingAdminUpdateRequest:
     type: object
     properties:
